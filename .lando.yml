@@ -1,0 +1,68 @@
+name: node
+recipe: lamp
+config:
+  php: '7.4'
+  webroot: .
+  database: mysql:8.0
+  xdebug: true
+  ssl: true
+  proxy:
+    appserver:
+      - localhost
+    database:
+      - db.ci.lndo.site
+    mailhog:
+      - mail.ci.lndo.site
+    pma:
+      - pma.ci.lndo.site
+    node:
+      - node.ci.lndo.site
+services:
+  appserver:
+    build_as_root:
+      - a2enmod headers
+      - a2enmod rewrite
+      - service apache2 reload
+    run_as_root:
+      - "chown www-data: -R /app"
+  database:
+    type: mysql:8.0
+    portforward: 3306
+    creds:
+      user: lamp
+      password: lamp
+      database: lamp
+    authentication: caching_sha2_password
+  mailhog:
+    type: mailhog
+    hogfrom:
+      - appserver
+    portforward: 1026
+  pma:
+    type: phpmyadmin
+    hosts: database
+  node:
+    type: node:12
+    overrides:
+      ports:
+        - 8082:8080
+    build:
+      - npm install
+      - npm install servor -g
+      - npm install -g @vue/cli
+      - npm install -g @vue/cli-service-global
+tooling:
+  npm:
+    service: node
+  npx:
+    service: node
+  node:
+    service: node
+  gulp:
+    service: node
+  yarn:
+    service: node
+  servor:
+    service: node
+  vue:
+    service: node
